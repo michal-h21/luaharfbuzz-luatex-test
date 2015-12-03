@@ -1,0 +1,16 @@
+\ProvidesPackage{newharfbuzz}
+\RequirePackage{luacode}
+
+\begin{luacode*}
+  package.path = package.path .. ";../?.lua"
+  print(package.path)
+  local fontloader = require "hb_fontload"
+  luatexbase.add_to_callback("define_font",fontloader.loader, "font loader")
+  hb_test = require "hb_test"
+  
+\end{luacode*}
+\AtBeginDocument{%
+  \noto
+  \directlua{hb_test.run()}%
+}%
+\endinput
