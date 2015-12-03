@@ -46,18 +46,29 @@ local make_nodes = function(f,glyphs)
     end
     -- create new glyph node with character data
     local char = convert_glyph(f, v.gid)
-    local n = create(char)
-    -- calculate correct dimensions in TeX sp units
-    -- it seems that Harfbuzz returns dimensions relative to font em value
-    local function calc_dim(field)
-      return v[field] / f.units_per_em * f.size
+    local n 
+    print("char",char)
+    if char == 32 then
+       n = node.new("glue")
+       n.spec = node.new("glue_spec")
+       local font_parameters = f.parameters
+       n.spec.width   = font_parameters.space
+       n.spec.shrink  = font_parameters.space_shrink
+       n.spec.stretch = font_parameters.space_stretch
+    else
+      n = create(char)
+      -- calculate correct dimensions in TeX sp units
+      -- it seems that Harfbuzz returns dimensions relative to font em value
+      local function calc_dim(field)
+        return v[field] / f.units_per_em * f.size
+      end
+      -- we have width and height for characters already, so this probably isn't needed
+      -- or maybe it is? anyway, leave it for the future now
+      n.width = calc_dim "ax"
+      n.height = calc_dim "ay"
+      n.xoffset = calc_dim "dx"
+      n.yoffset = calc_dim "dy"
     end
-    -- we have width and height for characters already, so this probably isn't needed
-    -- or maybe it is? anyway, leave it for the future now
-    n.width = calc_dim "ax"
-    n.height = calc_dim "ay"
-    n.xoffset = calc_dim "dx"
-    n.yoffset = calc_dim "dy"
     t[#t + 1] = n
   end
   return t
@@ -80,7 +91,8 @@ function M.run()
   -- test string
   local texttoshape = "یہ"
   texttoshape = "پراگ"
-  texttoshape = "تاریخ"
+  texttoshape = "تاریخ تاریخچہ"
+  texttoshape = [[تاریخ کے صفحات میں پراگ کا پھلا ذکر]]
   -- texttoshape = "ahoj"
   -- make table with characters to be typesset
   local text, f = shape(texttoshape)
@@ -98,6 +110,7 @@ function M.run()
   -- text direction must be handled latter, it doesn't seem to work properly yet
   -- hbox.dir = "TRT"
   local vbox = node.vpack(hbox)
+  -- local vbox = tex.linebreak(g1,{ hsize = tex.sp("6in")})
   node.write(vbox)
 end
 
