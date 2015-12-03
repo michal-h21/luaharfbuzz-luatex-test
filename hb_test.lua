@@ -54,8 +54,8 @@ local make_nodes = function(f,glyphs)
     end
     -- we have width and height for characters already, so this probably isn't needed
     -- or maybe it is? anyway, leave it for the future now
-    -- n.width = calc_dim "ax"
-    -- n.height = calc_dim "ay"
+    n.width = calc_dim "ax"
+    n.height = calc_dim "ay"
     n.xoffset = calc_dim "dx"
     n.yoffset = calc_dim "dy"
     t[#t + 1] = n
@@ -79,6 +79,8 @@ end
 function M.run()
   -- test string
   local texttoshape = "یہ"
+  texttoshape = "پراگ"
+  texttoshape = "تاریخ"
   -- texttoshape = "ahoj"
   -- make table with characters to be typesset
   local text, f = shape(texttoshape)
