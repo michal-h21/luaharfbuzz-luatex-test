@@ -32,7 +32,15 @@ local function create(char)
   return g1
 end
 
+local function printf(tpl, ...)
+  print(string.format(tpl,...))
+end
 
+local function printprop(name, x, y)
+  if x ~= 0 or y ~=0 then
+    printf(name .. " x: %s, y:%s",x,y)
+  end
+end
 
 local make_nodes = function(f,glyphs)
   -- process shaped glyph table 
@@ -41,13 +49,13 @@ local make_nodes = function(f,glyphs)
   print("#", #glyphs)
   for _, v in ipairs(glyphs) do
     -- print properties saved in Luaharfbuzz
-    for x,y in pairs(v) do
-      print("",x,y)
-    end
+    -- for x,y in pairs(v) do
+    --   print("",x,y)
+    -- end
     -- create new glyph node with character data
     local char = convert_glyph(f, v.gid)
     local n 
-    print("char",char)
+    printf("char: %s, glyph: %s, cluster: %s",char, v.gid, v.cl)
     if char == 32 then
        n = node.new("glue")
        n.spec = node.new("glue_spec")
@@ -56,6 +64,10 @@ local make_nodes = function(f,glyphs)
        n.spec.shrink  = font_parameters.space_shrink
        n.spec.stretch = font_parameters.space_stretch
     else
+      printprop("dimensions", v.w, v.h)
+      printprop("advance", v.ax, v.ay)
+      printprop("offset", v.dx, v.dy)
+      printprop("bearings", v.xb, v.yb)
       n = create(char)
       -- calculate correct dimensions in TeX sp units
       -- it seems that Harfbuzz returns dimensions relative to font em value
