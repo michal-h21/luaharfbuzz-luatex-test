@@ -1,17 +1,3 @@
--- add luarocks to path
-local luarocks = io.popen("luarocks path", "r")
-if luarocks then
-  print "Add luarocks path"
-  local paths = luarocks:read("*all")
-  luarocks:close()
-  local path = paths:match("PATH='(.-)'")
-  local cpath = paths:match("CPATH='(.-)'")
-  package.cpath=package.cpath .. ";" .. cpath
-  package.path=package.path .. ";" .. path .. ";../?.lua"
-else
-  print "Nepřidáváme je. Proč?"
-end
-
 -- this is copied from luatexbase.loader
 if not package.searchers then
   package.searchers = package.loaders
