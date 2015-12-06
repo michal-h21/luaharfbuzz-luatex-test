@@ -51,10 +51,11 @@ local function printprop(name, x, y)
   end
 end
 
-local make_nodes = function(f,glyphs)
+local make_nodes = function(f,glyphs, factor)
   -- process shaped glyph table 
   -- f is current font properties
   local t = {}
+  local factor = factor or 1
   print("#", #glyphs)
   for _, v in ipairs(glyphs) do
     -- print properties saved in Luaharfbuzz
@@ -83,11 +84,16 @@ local make_nodes = function(f,glyphs)
       local function calc_dim(field)
         return v[field] / f.units_per_em * f.size
       end
-      -- we have width and height for characters already, so this probably isn't needed
-      -- or maybe it is? anyway, leave it for the future now
-      n.width = calc_dim "x_advance"
-      n.height = calc_dim "y_advance"
-      n.xoffset = calc_dim "x_offset"
+      -- deal with kerning
+      local x_advance = calc_dim "x_advance"
+      if x_advance and x_advance ~= n.width then
+        local kern = node.new "kern"
+        kern.kern = (n.width - x_advance) * factor
+        t[#t+1] = kern
+      end
+      -- width and height are set from font, we can't change them anyway
+      -- n.height = calc_dim "y_advance"
+      n.xoffset = (calc_dim "x_offset") * factor
       n.yoffset = calc_dim "y_offset"
     end
     t[#t + 1] = n
@@ -117,7 +123,6 @@ local function reverse_glyphs(t)
     local curr = t[i]
     -- we must also fix x_offset
     -- what about x_advance? we don't use it yet
-    curr.x_offset = curr.x_offset * -1
     x[#x+1] = curr
     i = i - 1
     local next = t[i] or {}
@@ -144,16 +149,18 @@ function M.run()
   texttoshape = "تاریخ تاریخچہ"
   texttoshape = [[تاریخ کے صفحات میں پراگ کا پھلا ذکر]]
   texttoshape = "تاریخ کے صفحات میں پراگ کا پھلا ذکر"
-  texttoshape = "تاریخ کے صفحات میں پراگ کا پھلا ذکر"
   -- texttoshape = "ahoj"
+  -- in RTL mode, horizontal sizes must be negated
+  local factor = 1
   -- make table with characters to be typesset
   local text, f = shape(texttoshape)
   -- we must revert the glyphs in RTL textdir mode
   if tex.textdir == "TRT" then
     text = reverse_glyphs(text)
+    factor = -1
   end
   -- make table with nodes
-  local t = make_nodes(f, text)
+  local t = make_nodes(f, text, factor)
   -- local text = {80, 97, 99, 107}
 
   -- for _, char in ipairs(text) do
