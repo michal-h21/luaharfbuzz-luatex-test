@@ -2,9 +2,9 @@ local M = {}
 
 -- see M.run() function first
 --
-package.path = package.path ..";"..'../src/?.lua'
-package.cpath = package.cpath ..";".. '../?.so'
-print(package.path)
+-- package.path = package.path ..";"..'../src/?.lua'
+-- package.cpath = package.cpath ..";".. '../?.so'
+-- print(package.path)
 
 local hb = require "harfbuzz"
 local Buffer = hb.Buffer
