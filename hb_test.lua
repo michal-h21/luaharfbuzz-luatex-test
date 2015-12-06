@@ -19,7 +19,9 @@ local function shape(text)
   buffer:add_utf8(text)
   buffer:guess_segment_properties()
   local Font = f.hb_font
-  return hb.shape(Font, buffer), f
+  local res = hb.shape(Font, buffer)
+  print("direction", buffer:get_direction(), buffer:get_script())
+  return res, f
 end
 
 local function convert_glyph(f, glyph)
@@ -106,15 +108,50 @@ local function make_box(t)
   return head --node.slide(head)
 end
 
+local function reverse_glyphs(t)
+  -- we need to revere the shaped table, but leave characters with same cluster in the original order
+  local n = {}
+  local i = #t
+  local function eat_cluster(x)
+    local x = x or {}
+    local curr = t[i]
+    -- we must also fix x_offset
+    -- what about x_advance? we don't use it yet
+    curr.x_offset = curr.x_offset * -1
+    x[#x+1] = curr
+    i = i - 1
+    local next = t[i] or {}
+    if i < 1 or curr.cluster ~= next.cluster then
+      return x
+    else
+      return eat_cluster(x)
+    end
+  end
+  while i > 0 do
+    local p = eat_cluster() or {}
+    print("cluster", #p)
+    for _, v in ipairs(p) do
+      n[#n+1] = v
+    end
+  end
+  return n
+end
+
 function M.run()
   -- test string
   local texttoshape = "یہ"
   texttoshape = "پراگ"
   texttoshape = "تاریخ تاریخچہ"
   texttoshape = [[تاریخ کے صفحات میں پراگ کا پھلا ذکر]]
+  texttoshape = "تاریخ کے صفحات میں پراگ کا پھلا ذکر"
+  texttoshape = "تاریخ کے صفحات میں پراگ کا پھلا ذکر"
   -- texttoshape = "ahoj"
   -- make table with characters to be typesset
   local text, f = shape(texttoshape)
+  -- we must revert the glyphs in RTL textdir mode
+  if tex.textdir == "TRT" then
+    text = reverse_glyphs(text)
+  end
   -- make table with nodes
   local t = make_nodes(f, text)
   -- local text = {80, 97, 99, 107}
