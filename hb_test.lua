@@ -19,7 +19,7 @@ local function shape(text)
   buffer:add_utf8(text)
   buffer:guess_segment_properties()
   local Font = f.hb_font
-  return {hb.shape(Font, buffer)}, f
+  return hb.shape(Font, buffer), f
 end
 
 local function convert_glyph(f, glyph)
