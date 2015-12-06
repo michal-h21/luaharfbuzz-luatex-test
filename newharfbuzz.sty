@@ -2,7 +2,8 @@
 \RequirePackage{luacode}
 
 \begin{luacode*}
-  package.path = package.path .. ";../?.lua"
+  require "hb_paths"
+  require "hb_lualoader"
   print(package.path)
   local fontloader = require "hb_fontload"
   luatexbase.add_to_callback("define_font",fontloader.loader, "font loader")
